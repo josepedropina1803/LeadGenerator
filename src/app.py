@@ -21,8 +21,9 @@ if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
 # Imports dos módulos UI
+from ui.pagesEnum import Pages
 from ui.sidebar import render_sidebar
-from ui.upload_data import render_upload_data
+
 from ui.company_selector import render_company_selector
 from ui.company_details import render_company_details
 from ui.website_analysis import render_website_analysis
@@ -41,25 +42,25 @@ st.markdown("---")
 # Renderizar sidebar
 render_sidebar()
 
-# Upload e validação de dados
-df = render_upload_data()
 
-if df is not None:
-    # Dados carregados - mostrar seletor de empresa
-    empresa = render_company_selector(df)
-    
-    if empresa is not None:
-        # Empresa selecionada - mostrar tabs
-        tab_dados, tab_analise = st.tabs([
-            "📊 Dados da Empresa", 
-            "📧 Relatório de Lead"
-        ])
+if 'uploaded_data' in st.session_state and st.session_state.uploaded_data is not None:
+        # Dados já carregados - mostrar dashboard
+        st.success("✅ Dataset loaded!")
+        df = st.session_state.uploaded_data
+        st.info(f"Dataset with {len(df)} companies ready for analysis!")
         
-        with tab_dados:
-            render_company_details(empresa, df)
-        
-        with tab_analise:
-            render_website_analysis(empresa)
+        # Aqui você coloca o conteúdo do seu dashboard principal
+        st.subheader("📊 General Analysis")
+        # ... resto da lógica do dashboard
+        if st.button("🏠 Website Analysis"):
+                st.switch_page(Pages.WEBSITE_ANALYZER.value)
+else:
+        # Nenhum dado carregado - redirecionar para upload
+        st.warning("⚠️ No dataset was loaded. Please upload from \"Upload Data\" first.")
+        if st.button("📤 Upload Data", type="primary"):
+            st.switch_page(Pages.UPLOAD_DATA.value)
+
+
 
 # Rodapé
 st.markdown("---")

@@ -14,7 +14,7 @@ def render_company_details(empresa: pd.Series, df: pd.DataFrame):
         empresa: Series com dados da empresa
         df: DataFrame completo (para obter índice)
     """
-    st.subheader(f"Dados da Empresa: {empresa['Nome']}")
+    st.subheader(f"Company Name: {empresa['Nome']}")
     
     # Informações principais em colunas
     col1, col2, col3 = st.columns(3)
@@ -24,7 +24,7 @@ def render_company_details(empresa: pd.Series, df: pd.DataFrame):
     
     with col2:
         setor_original = empresa.get('Setor', 'Não definido')
-        st.write("**Setor (Original):**", setor_original)
+        st.write("**Sector (Original):**", setor_original)
     
     with col3:
         # Obter ID da empresa
@@ -33,7 +33,7 @@ def render_company_details(empresa: pd.Series, df: pd.DataFrame):
     
     # Descrição completa
     st.markdown("---")
-    st.markdown("### 📄 Descrição da Atividade")
+    st.markdown("### 📄 Description of Activity")
     st.write(empresa['Descrição Atividade'])
     
     # Informações adicionais (se existirem)
@@ -49,7 +49,7 @@ def render_company_details(empresa: pd.Series, df: pd.DataFrame):
     
     if campos_disponiveis:
         st.markdown("---")
-        st.markdown("### ℹ️ Informações Adicionais")
+        st.markdown("### ℹ️ Additional Info")
         
         col1, col2 = st.columns(2)
         

@@ -16,7 +16,7 @@ def render_company_selector(df: pd.DataFrame):
     Returns:
         pd.Series ou None: Dados da empresa selecionada ou None
     """
-    st.header("🎯 Selecionar Empresa")
+    st.header("🎯 Select Company")
     
     # Inicializar estado
     if 'empresa_selecionada_nome' not in st.session_state:
@@ -31,7 +31,7 @@ def render_company_selector(df: pd.DataFrame):
     
     # Selectbox
     empresa_selecionada_nome = st.selectbox(
-        "Escolha uma empresa para análise:",
+        "Choose a company to analyze:",
         df['Nome'].tolist(),
         key="empresa_select",
         on_change=on_empresa_change
@@ -44,7 +44,7 @@ def render_company_selector(df: pd.DataFrame):
     empresa_df = df[df['Nome'] == empresa_selecionada_nome]
     
     if empresa_df.empty:
-        st.error("❌ Dados da empresa selecionada não encontrados.")
+        st.error("❌ Company Data not found.")
         return None
     
     return empresa_df.iloc[0]

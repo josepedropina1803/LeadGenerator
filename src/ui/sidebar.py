@@ -12,7 +12,7 @@ def render_sidebar():
     Renderiza a sidebar com configurações da aplicação
     """
     with st.sidebar:
-        st.header("⚙️ Configurações")
+        st.header("⚙️ Menu")
         
         # Verificar se há API key no .env
         env_values = dotenv_values()
@@ -25,6 +25,8 @@ def render_sidebar():
         
         # Slider de temperatura
         model_temp = st.slider("Temperatura do Modelo", 0.0, 1.0, 0.3)
+
+        
         
         # Informações adicionais
         st.markdown("---")
