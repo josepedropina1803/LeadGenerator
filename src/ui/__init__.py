@@ -3,7 +3,7 @@
 Pacote UI - Módulos de interface do Streamlit
 """
 from .sidebar import render_sidebar
-from pages.upload_data import render_upload_data
+
 from .company_selector import render_company_selector
 from .company_details import render_company_details
 from .website_analysis import render_website_analysis

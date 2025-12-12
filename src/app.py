@@ -19,6 +19,8 @@ api_key = os.getenv("OPENAI_API_KEY")
 src_path = Path(__file__).parent.parent
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
+    
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Imports dos módulos UI
 from ui.pagesEnum import Pages

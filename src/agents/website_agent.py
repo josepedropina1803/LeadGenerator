@@ -16,36 +16,36 @@ class WebsiteAgent(BaseAgent):
         
         self.prompt = PromptTemplate.from_template(
             """Com base no website '{url}', faça uma avaliação detalhada considerando os seguintes critérios.
-            
-IMPORTANTE: Cada critério deve ser avaliado numa escala de 0 a 5, onde:
-- 0 = Muito Fraco
-- 1-2 = Insuficiente  
-- 3 = Satisfatório
-- 4 = Bom
-- 5 = Excelente
+                            
+                IMPORTANTE: Cada critério deve ser avaliado numa escala de 0 a 5, onde:
+                - 0 = Muito Fraco
+                - 1-2 = Insuficiente  
+                - 3 = Satisfatório
+                - 4 = Bom
+                - 5 = Excelente
 
-Formate a resposta da seguinte maneira para CADA critério:
+                Formate a resposta da seguinte maneira para CADA critério:
 
-1. Design: [NOTA]/5
-[Explicação detalhada sobre o design, incluindo pontos positivos e negativos]
+                1. Design: [NOTA]/5
+                [Explicação detalhada sobre o design, incluindo pontos positivos e negativos]
 
-2. Funcionalidade: [NOTA]/5
-[Explicação detalhada sobre a funcionalidade, incluindo pontos positivos e negativos]
+                2. Funcionalidade: [NOTA]/5
+                [Explicação detalhada sobre a funcionalidade, incluindo pontos positivos e negativos]
 
-3. Acessibilidade: [NOTA]/5
-[Explicação detalhada sobre a acessibilidade, incluindo pontos positivos e negativos]
+                3. Acessibilidade: [NOTA]/5
+                [Explicação detalhada sobre a acessibilidade, incluindo pontos positivos e negativos]
 
-4. Responsivo: [NOTA]/5
-[Explicação detalhada sobre a responsividade, incluindo pontos positivos e negativos]
+                4. Responsivo: [NOTA]/5
+                [Explicação detalhada sobre a responsividade, incluindo pontos positivos e negativos]
 
-5. Segurança: [NOTA]/5
-[Explicação detalhada sobre a segurança, incluindo pontos positivos e negativos]
+                5. Segurança: [NOTA]/5
+                [Explicação detalhada sobre a segurança, incluindo pontos positivos e negativos]
 
-6. Chatbot: [SIM/NÃO]
-[Se houver chatbot, descreva sua implementação e qualidade]
+                6. Chatbot: [SIM/NÃO]
+                [Se houver chatbot, descreva sua implementação e qualidade]
 
-Seja objetivo, crítico e honesto na avaliação. Não hesite em apontar problemas e áreas que precisam de melhoria."""
-        )
+                Seja objetivo, crítico e honesto na avaliação. Não hesite em apontar problemas e áreas que precisam de melhoria."""
+            )
         
         self.chain = self.prompt | self.llm
     
