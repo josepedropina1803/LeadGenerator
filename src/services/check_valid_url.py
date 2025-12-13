@@ -21,14 +21,14 @@ def is_valid_url(url):
             return False
             
         # Testar se o URL é acessível (com timeout curto)
-        response = requests.head(url, timeout=5, allow_redirects=True)
-        return response.status_code < 400  # Considerar sucesso se < 400
+        response = requests.head(url, timeout=20, allow_redirects=True)
+        return response.status_code < 500  # Considerar sucesso se < 400
         
     except requests.exceptions.RequestException:
         # Se der erro de conexão, tentar GET como fallback
         try:
             response = requests.get(url, timeout=5, allow_redirects=True)
-            return response.status_code < 400
+            return response.status_code < 500
         except:
             return False
     except:

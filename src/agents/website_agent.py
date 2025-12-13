@@ -3,6 +3,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 import os
 from typing import Dict, Any
+
+from services.check_valid_url import is_valid_url
 from .base_agent import BaseAgent
 
 class WebsiteAgent(BaseAgent):
@@ -54,6 +56,9 @@ class WebsiteAgent(BaseAgent):
             self.log_action("Avaliando website", {"url": input_data.get('url', '')})
             
             url = input_data['url']
+
+            
+            
             result = self.chain.invoke({"url": url})
             avaliacao = result.content if hasattr(result, 'content') else str(result)
             avaliacao = avaliacao.strip()

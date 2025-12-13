@@ -7,7 +7,10 @@ import pandas as pd
 import time
 from typing import Dict, Any
 
-# Imports dos agentes
+from orchestration.security_workflow import run_security_check
+from services.check_valid_url import is_valid_url
+
+
 try:
     from agents.categorization_agent import CategorizationAgent
     from agents.website_agent import WebsiteAgent
@@ -18,60 +21,46 @@ except ImportError:
 
 
 def render_website_analysis(empresa: pd.Series):
-    """
-    Renderiza a análise completa do website na tab "Relatório de Lead"
+    """..."""
+    url = empresa['Website']
+    tab_analise, tab_seguranca = st.tabs([
+        "📧 Relatório de Lead",
+        "🔒 Segurança"
+    ])
     
-    Args:
-        empresa: Series com dados da empresa
-    """
-    st.header(f"📧 Relatório de Lead para {empresa['Nome']}")
+    with tab_seguranca:
+        render_security_section(url)
+    with tab_analise:
+        clica = st.button("Clica")
+        if(clica):  
+            _execute_analysis(url)
+            _avaliar_website(url)
+            _render_analysis_results(empresa)
     
-    # Botão para gerar relatório
-    if st.button("🚀 Obter Relatório de Lead", type="primary"):
-        _execute_analysis(empresa)
-    
-    # Verificar se análise foi executada
-    if st.session_state.get('analise_results'):
-        _render_analysis_results(empresa)
-    else:
-        st.info(
-            "Pressione o botão 'Obter Relatório de Lead' para iniciar "
-            "a análise e visualizar os resultados."
-        )
 
 
-def _execute_analysis(empresa: pd.Series):
+def _execute_analysis(url: str):
     """
     Executa a análise usando os agentes
     
     Args:
-        empresa: Series com dados da empresa
+        url: URL do website a analisar
     """
-    with st.spinner("🤖 Agentes AI analisando..."):
+    with st.spinner("🤖 AI Agents Analyzing..."):
         # Simular processamento
         time.sleep(2)
-        
         # Executar agentes
-        setor = _categorizar_empresa(empresa['Descrição Atividade'])
-        avaliacao_website = _avaliar_website(empresa['Website'])
+        if(is_valid_url(url)):
+            
+            avaliacao_website = _avaliar_website(url)
+            # Armazenar resultados
+            st.session_state.analise_results = {
+                "avaliacao_website": avaliacao_website,
+            }
+        else:
+            st.error(f"URL not Valid! url: {url}")
         
-        # Armazenar resultados
-        st.session_state.analise_results = {
-            "setor": setor,
-            "avaliacao_website": avaliacao_website,
-        }
-
-
-def _categorizar_empresa(descricao: str) -> str:
-    """Categoriza a empresa usando o agente"""
-    try:
-        agent = CategorizationAgent()
-        result = agent.process({"descricao": descricao})
-        return result.get("setor", "Não identificado")
-    except Exception as e:
-        st.error(f"Erro na categorização: {e}")
-        return "Erro na análise"
-
+        
 
 def _avaliar_website(url: str) -> str:
     """Avalia o website usando o agente"""
@@ -95,28 +84,19 @@ def _render_analysis_results(empresa: pd.Series):
     
     st.header("📈 Resultados da Análise")
     
-    # Setor identificado
-    _render_sector_section(resultados)
+    
     
     # Avaliação do website
     _render_website_evaluation(resultados)
+
     
-    # Segurança do website
-    _render_security_section()
     
-    # Resumo executivo
-    _render_executive_summary(empresa, resultados)
+   
     
     # Botão de exportação
     if st.button("💾 Exportar Relatório"):
         st.success("✅ Relatório exportado com sucesso!")
         st.info("🔜 Funcionalidade de exportação em desenvolvimento...")
-
-
-def _render_sector_section(resultados: Dict):
-    """Renderiza seção do setor identificado"""
-    st.subheader("🏢 Setor Identificado")
-    st.info(resultados.get('setor', 'Não identificado'))
 
 
 def _render_website_evaluation(resultados: Dict):
@@ -157,124 +137,74 @@ def _render_website_evaluation(resultados: Dict):
         st.markdown("---")
 
 
-def _render_security_section():
-    """Renderiza seção de segurança do website"""
+def render_security_section(url: str):
+    """Renderiza segurança com atualizações dinâmicas"""
+    
     st.subheader("🔒 Segurança do Website")
     
-    # Dados dummy de segurança
-    security_data = _get_dummy_security_data()
-    
-    # Resumo principal
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if security_data['ssl']['valido']:
-            st.metric("Status SSL", "✅ Válido", delta="Ativo")
-        else:
-            st.metric("Status SSL", "❌ Inválido", delta="Crítico", delta_color="inverse")
+    if st.button("🚀 Verificar Segurança", key="security_check"):
+        # Containers para atualizar em tempo real
+        status_container = st.container()
+        metrics_container = st.container()
+        details_container = st.container()
         
-        st.write(f"**Emissor:** {security_data['ssl']['emissor']}")
-        st.write(f"**Protocolo:** {security_data['ssl']['protocolo']}")
-    
-    with col2:
-        dias = security_data['ssl']['dias_restantes']
-        if dias > 30:
-            st.metric("Validade", f"{dias} dias", delta="OK")
-        elif dias > 0:
-            st.metric("Validade", f"{dias} dias", delta="Expira em breve", delta_color="inverse")
-        else:
-            st.metric("Validade", "Expirado", delta="Crítico", delta_color="inverse")
+        with st.spinner("🔍 Verificando..."):
+            # Executar workflow
+            report = run_security_check(url)
         
-        st.write(f"**Válido até:** {security_data['ssl']['valido_ate']}")
-    
-    with col3:
-        nota = security_data['score']['nota']
-        if nota.startswith('A'):
-            delta_color = "normal"
-        elif nota.startswith('B'):
-            delta_color = "off"
-        else:
-            delta_color = "inverse"
+        # Atualizar status
+        with status_container:
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                ssl_status = report["ssl_status"].get("status", "❌ Erro")
+                st.metric("SSL/TLS", ssl_status)
+            
+            with col2:
+                headers_present = sum(
+                    1 for v in report["headers_check"].values() 
+                    if "✅" in str(v)
+                )
+                st.metric("Headers Seguros", f"{headers_present}/4")
+            
+            with col3:
+                vulns = len(report["vulnerabilities"])
+                risk_color = {
+                    "CRITICAL": "🔴",
+                    "HIGH": "🟠",
+                    "MEDIUM": "🟡",
+                    "LOW": "🟢"
+                }
+                risk_icon = risk_color.get(report["risk_level"], "⚪")
+                st.metric("Nível de Risco", f"{risk_icon} {report['risk_level']}")
         
-        st.metric("Avaliação Geral", nota, 
-                 delta=security_data['score']['nivel'],
-                 delta_color=delta_color)
-        st.write(f"**Pontuação:** {security_data['score']['pontuacao']}/100")
-    
-    st.markdown("---")
-    
-    # Análise detalhada
-    col_left, col_right = st.columns(2)
-    
-    with col_left:
-        st.markdown("#### ✅ Pontos Positivos")
-        st.markdown("""
-        - ✅ Certificado SSL válido
-        - ✅ HSTS habilitado
-        - ✅ HTTP/2 suportado
-        - ✅ Cookies configurados corretamente
-        - ✅ Compressão ativada
-        - ✅ X-Content-Type-Options presente
-        """)
-    
-    with col_right:
-        st.markdown("#### ⚠️ Problemas Identificados")
+        st.markdown("---")
         
-        if not security_data['redirect']['http_para_https']:
-            st.error("🚨 **CRÍTICO:** Sem redirecionamento HTTP → HTTPS")
-        
-        if security_data['ssl']['dias_restantes'] <= 30:
-            st.warning(f"⚠️ Certificado expira em {security_data['ssl']['dias_restantes']} dias")
-        
-        if security_data['ssl']['protocolo'] == 'TLSv1.2':
-            st.warning("⚠️ Usar TLS 1.3 para melhor segurança")
-        
-        if not security_data['security_headers']['x_frame_options']:
-            st.warning("⚠️ Header X-Frame-Options ausente")
-        
-        if not security_data['security_headers']['content_security_policy']:
-            st.info("ℹ️ CSP não configurado (recomendado)")
-    
-    st.markdown("---")
-    
-    # Detalhes técnicos em expanders
-    with st.expander("🔍 Detalhes Completos do Certificado SSL"):
-        st.json(security_data['ssl'])
-    
-    with st.expander("🔄 Configuração de Redirecionamento"):
-        st.json(security_data['redirect'])
-    
-    with st.expander("🛡️ Headers de Segurança HTTP"):
-        st.json(security_data['security_headers'])
-    
-    with st.expander("🍪 Configuração de Cookies"):
-        st.json(security_data['cookies'])
-    
-    with st.expander("⚙️ Configurações do Servidor"):
-        st.json(security_data['servidor'])
+        # Detalhes
+        with details_container:
+            col_left, col_right = st.columns(2)
+            
+            with col_left:
+                st.markdown("#### ✅ OK")
+                for issue in report["security_issues"]:
+                    if "✅" in issue:
+                        st.write(issue)
+            
+            with col_right:
+                st.markdown("#### ⚠️ Problemas")
+                if report["vulnerabilities"]:
+                    for vuln in report["vulnerabilities"]:
+                        st.warning(vuln)
+                else:
+                    st.success("Nenhuma vulnerabilidade detectada!")
+            
+            st.markdown("---")
+            
+            # Expanders com detalhes
+            with st.expander("🔍 Detalhes Completos"):
+                st.json(report)
 
 
-def _render_executive_summary(empresa: pd.Series, resultados: Dict):
-    """Renderiza resumo executivo"""
-    st.markdown("---")
-    st.subheader("📋 Resumo Executivo")
-    
-    st.markdown(f"""
-    **Empresa analisada:** {empresa['Nome']}
-    
-    **Setor principal (AI):** {resultados.get('setor', 'Não identificado')}
-    
-    **Principais oportunidades identificadas:**
-    - Melhoria na presença digital
-    - Implementação de automação
-    - Fortalecimento da análise de dados
-    
-    **Recomendação:** Priorizar investimentos em tecnologia e automação 
-    para otimizar processos.
-    """)
-
-
-def _get_dummy_security_data() -> Dict:
     """
     Retorna dados dummy de segurança
     TODO: Substituir por dados reais

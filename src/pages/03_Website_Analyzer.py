@@ -27,7 +27,7 @@ if dataset_loaded:
 
     
     render_company_details(empresa=empresa, df=df)
-    render_website_analysis(empresa=empresa)
+    render_website_analysis(empresa)
 
     
 
