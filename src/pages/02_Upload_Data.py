@@ -9,8 +9,6 @@ from ui.pagesEnum import Pages
 from ui.upload_data import render_upload_data
 
 
-
-
 st.title("📤 Data Upload")
     
     # Renderizar upload de dados (agora com cache automático)

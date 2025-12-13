@@ -13,8 +13,6 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 
-
-
 # Adiciona o diretório src ao path para permitir imports
 src_path = Path(__file__).parent.parent
 if str(src_path) not in sys.path:

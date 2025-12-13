@@ -32,6 +32,8 @@ if dataset_loaded:
     
 
     
+
+    
     
 else:
     # Nenhum dado carregado - mostrar opções
