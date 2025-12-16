@@ -26,7 +26,7 @@ from ui.sidebar import render_sidebar
 
 from ui.company_selector import render_company_selector
 from ui.company_details import render_company_details
-from ui.website_analysis import render_website_analysis
+from ui.website_analysis.website_analysis_ui import render_website_analysis
 
 # Configuração da página
 st.set_page_config(
@@ -42,23 +42,48 @@ st.markdown("---")
 # Renderizar sidebar
 render_sidebar()
 
+st.markdown("""
+## 🎯 **Bem-vindo ao LeadGenerator!**
 
-if 'uploaded_data' in st.session_state and st.session_state.uploaded_data is not None:
-        # Dados já carregados - mostrar dashboard
-        st.success("✅ Dataset loaded!")
-        df = st.session_state.uploaded_data
-        st.info(f"Dataset with {len(df)} companies ready for analysis!")
-        
-        # Aqui você coloca o conteúdo do seu dashboard principal
-        st.subheader("📊 General Analysis")
-        # ... resto da lógica do dashboard
-        if st.button("🏠 Website Analysis"):
-                st.switch_page(Pages.WEBSITE_ANALYZER.value)
-else:
-        # Nenhum dado carregado - redirecionar para upload
-        st.warning("⚠️ No dataset was loaded. Please upload from \"Upload Data\" first.")
-        if st.button("📤 Upload Data", type="primary"):
-            st.switch_page(Pages.UPLOAD_DATA.value)
+Olá! É um prazer tê-lo a bordo. Deixe-me apresentar-lhe o **LeadGenerator** – o seu copiloto inteligente para análise e qualificação de leads empresariais.
+
+### ✨ **O que fazemos por si?**
+
+Imagine ter uma equipa de especialistas em segurança cibernética, análise de negócios e investigação digital – tudo isso automatizado e disponível 24/7. É exatamente isso que oferecemos!
+
+### 🛫 **A sua jornada connosco tem três destinos:**
+
+**📊 Módulo 1: Upload de Dados**
+Comece por carregar o seu dataset de empresas (formato CSV ou Excel). Pense nisto como o check-in dos seus potenciais clientes. Uma vez a bordo, teremos todos os dados organizados e prontos para análise profunda.
+
+**🧙‍♂️ Módulo 2: Análise de Websites**
+Aqui é onde a magia acontece! Os nossos agentes de IA fazem uma inspeção completa do website de cada empresa:
+
+- **🔒 Análise de Segurança Completa** – Verificamos certificados SSL, headers de segurança, vulnerabilidades, arquivos expostos, cookies, e muito mais. É como um raio-X digital que revela se o website está blindado ou vulnerável.
+
+- **📧 Relatório de Lead Qualificado** – A nossa IA avalia o website em múltiplos critérios (design, funcionalidade, conteúdo, SEO, experiência do utilizador) e gera um relatório detalhado com pontuações de 0 a 5. Perfeito para perceber se aquela empresa está madura para o seu produto/serviço!
+
+**🧬 Módulo 3: Análise de Redes Sociais** *(em desenvolvimento)*
+Em breve, também analisaremos a presença digital nas redes sociais, completando o perfil 360º de cada lead.
+
+### 🎁 **O que leva da viagem:**
+
+✅ Relatórios detalhados de segurança em PDF
+✅ Scores de risco e recomendações prioritizadas
+✅ Análises geradas por IA em linguagem clara
+✅ Visão completa sobre a maturidade digital de cada lead
+✅ Insights acionáveis para a sua equipa comercial
+
+### 🧭 **Como navegar:**
+
+Use a **barra lateral** para alternar entre módulos. Carregue os seus dados, selecione uma empresa, e deixe os nossos agentes de IA trabalharem para si. É simples, rápido e poderoso.
+
+**Pronto para decolar?** Comece pelo **Upload de Dados** e descubra o potencial escondido nos seus leads! 🚀
+
+---
+
+*Tenha uma excelente análise, e lembre-se: estamos aqui para transformar dados em decisões inteligentes.*
+""")
 
 
 

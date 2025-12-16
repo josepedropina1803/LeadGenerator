@@ -6,7 +6,7 @@ from .sidebar import render_sidebar
 
 from .company_selector import render_company_selector
 from .company_details import render_company_details
-from .website_analysis import render_website_analysis
+from .website_analysis.website_analysis_ui import render_website_analysis
 
 __all__ = [
     'render_sidebar',

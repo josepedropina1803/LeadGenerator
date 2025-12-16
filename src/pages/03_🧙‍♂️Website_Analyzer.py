@@ -3,7 +3,7 @@ import pandas as pd
 from services.check_valid_url import is_valid_url
 from ui.company_details import render_company_details
 from ui.pagesEnum import Pages
-from ui.website_analysis import render_website_analysis 
+from ui.website_analysis.website_analysis_ui import render_website_analysis 
 st.title("🧙‍♂️ Website Analyzer")
 
 # Verificar se já temos dados carregados
@@ -47,7 +47,7 @@ else:
     )
     
     if option == "📤 Upload Dataset File":
-        st.subheader("Upload Dataset File")
+        st.subheader("Upload dataset file.")
         col1, col2 = st.columns([1, 2])
         with col1:
             if st.button("Go to Upload Page", use_container_width=True):
@@ -56,35 +56,37 @@ else:
         with col2:
             st.info("Navigate to the upload page to select and upload your CSV or Excel file.")
     
-    else:  # "🔗 Load Dataset from URL"
-        st.subheader("Load Dataset from URL")
-        url = st.text_input("Dataset URL (CSV format)", 
-                           placeholder="https://example.com/dataset.csv",
+    else:  # "🔗 Load Website option from URL"
+        st.subheader("Analyze your website of choice.")
+        url = st.text_input("Website URL",
+                           placeholder="https://example.com",
                            key="dataset_url_input")
-        
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            if st.button("Load from URL", use_container_width=True):
-                if url:
-                    if is_valid_url(url):
-                        try:
-                            with st.spinner("Loading data from URL..."):
-                                # Tentar carregar o dataset
-                                df = pd.read_csv(url)
-                                
-                                # Salvar na session state
-                                st.session_state.uploaded_data = df
-                                st.session_state.dataset_source = f"URL: {url}"
-                                
-                                st.success("✅ Dataset loaded successfully!")
-                                st.experimental_rerun()
-                                
-                        except Exception as e:
-                            st.error(f"❌ Error loading dataset: {str(e)}")
-                    else:
-                        st.error("❌ Invalid or inaccessible URL. Please check and try again.")
+
+
+
+        if st.button("Analyze Website", use_container_width=True):
+            if url:
+                if is_valid_url(url):
+                    # Guardar URL no session_state
+                    st.session_state.analyzed_url = url
+                    st.rerun()
                 else:
-                    st.warning("Please enter a URL")
-        
-        with col2:
-            st.info("Enter a direct URL to a CSV file. The URL must be publicly accessible.")
+                    st.error("❌ Invalid or inaccessible URL. Please check and try again.")
+            else:
+                st.warning("Please enter a URL")
+
+
+        st.info("Enter the URL of the website you want to analyze.")
+
+        # Renderizar análise se URL foi carregado
+        if 'analyzed_url' in st.session_state and st.session_state.analyzed_url:
+            st.markdown("---")
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.success(f"✅ Analyzing: {st.session_state.analyzed_url}")
+            with col2:
+                if st.button("🔄 New Analysis", use_container_width=True):
+                    del st.session_state.analyzed_url
+                    st.rerun()
+
+            render_website_analysis(st.session_state.analyzed_url)

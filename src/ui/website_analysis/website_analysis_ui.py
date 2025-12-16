@@ -2,13 +2,15 @@
 """
 Módulo UI: Análise de Website (Tab: Relatório de Lead)
 """
+from .security._render_details import _render_cms_detection, _render_cookie_details, _render_exposed_files, _render_headers_details, _render_ssl_details, _render_vulnerabilities
+from .security._render_llm_section import _render_llm_analysis
+from .security._render_metrics import _render_quick_metrics
+from .security._render_security_header import _render_risk_score_header
 import streamlit as st
 import pandas as pd
 import time
-from typing import Dict, Any
-import io
+from typing import Dict, Any, Union
 import json
-import io
 import os
 import re
 import unicodedata
@@ -30,25 +32,34 @@ except ImportError:
     pass
 
 
-def render_website_analysis(empresa: pd.Series):
-    """..."""
-    url = empresa['Website']
+def render_website_analysis(empresa_ou_url: Union[pd.Series, str]):
+
+    if isinstance(empresa_ou_url, str):
+        url = empresa_ou_url
+        empresa = pd.Series({'Website':url, 'Nome':url})
+    elif isinstance(empresa_ou_url, pd.Series):
+        url = empresa_ou_url['Website']
+        empresa = empresa_ou_url
+    else:
+        st.error("Entry type invalid to analyze website.")
+    
     tab_analise, tab_seguranca = st.tabs([
-        "📧 Relatório de Lead",
-        "🔒 Análise de Segurança"
+        "📧 Report Specialist",
+        "🔒 Security Analyst"
     ])
 
     with tab_seguranca:
         render_security_section(url)
 
     with tab_analise:
-        clica = st.button("Clica")
-        if(clica):
+        st.title("📧 Generalized Report")
+        st.markdown(f"**URL:** `{url}`")
+        st.markdown("---")
+        
+        if(st.button("📧 Iniciar Verificação Completa", type="primary", use_container_width=True)):
             _execute_analysis(url)
             _avaliar_website(url)
             _render_analysis_results(empresa)
-
-
 
 def _create_pdf_bytes(report: Dict[str, Any]) -> bytes:
     """Cria um PDF em memória com um resumo do relatório e retorna os bytes.
@@ -216,8 +227,6 @@ def _execute_analysis(url: str):
         else:
             st.error(f"URL not Valid! url: {url}")
 
-
-
 def _avaliar_website(url: str) -> str:
     """Avalia o website usando o agente"""
     try:
@@ -227,7 +236,6 @@ def _avaliar_website(url: str) -> str:
     except Exception as e:
         st.error(f"Erro na avaliação: {e}")
         return "Erro na análise"
-
 
 def _render_analysis_results(empresa: pd.Series):
     """
@@ -253,7 +261,6 @@ def _render_analysis_results(empresa: pd.Series):
     if st.button("💾 Exportar Relatório"):
         st.success("✅ Relatório exportado com sucesso!")
         st.info("🔜 Funcionalidade de exportação em desenvolvimento...")
-
 
 def _render_website_evaluation(resultados: Dict):
     """Renderiza avaliação geral do website"""
@@ -292,13 +299,12 @@ def _render_website_evaluation(resultados: Dict):
 
         st.markdown("---")
 
-
 def render_security_section(url: str):
     """
     Renderiza análise de segurança completa com visualização melhorada
     """
 
-    st.title("🔒 Análise de Segurança do Website")
+    st.title("🔒 Security First!")
     st.markdown(f"**URL:** `{url}`")
     st.markdown("---")
 
@@ -333,7 +339,6 @@ def render_security_section(url: str):
             st.error(f"❌ Erro na verificação: {str(e)}")
             progress_bar.empty()
             status_text.empty()
-
 
 def _render_security_results(report: Dict[str, Any]):
     """Renderiza resultados da análise de segurança"""
@@ -394,247 +399,10 @@ def _render_security_results(report: Dict[str, Any]):
         )
 
 
-def _render_risk_score_header(report: Dict[str, Any]):
-    """Renderiza header com risk score"""
-    risk_score = report.get("risk_score", 0)
-    risk_level = report.get("risk_level", "UNKNOWN")
-
-    # Definir cores e ícones por nível
-    risk_config = {
-        "CRITICAL": {"color": "#FF0000", "icon": "🚨", "emoji": "🔴"},
-        "HIGH": {"color": "#FF6B00", "icon": "⚠️", "emoji": "🟠"},
-        "MEDIUM": {"color": "#FFD700", "icon": "⚠️", "emoji": "🟡"},
-        "LOW": {"color": "#90EE90", "icon": "ℹ️", "emoji": "🟢"},
-        "VERY LOW": {"color": "#00FF00", "icon": "✅", "emoji": "🟢"}
-    }
-
-    config = risk_config.get(risk_level, {"color": "#808080", "icon": "❓", "emoji": "⚪"})
-
-    # Header com cores
-    col1, col2, col3 = st.columns([2, 1, 1])
-
-    with col1:
-        st.markdown(f"### {config['icon']} Nível de Risco: **{risk_level}**")
-
-    with col2:
-        st.metric("Risk Score", f"{risk_score}/100")
-
-    with col3:
-        # Emoji visual
-        st.markdown(f"<h1 style='text-align: center;'>{config['emoji']}</h1>", unsafe_allow_html=True)
-
-    # Progress bar colorida
-    st.markdown(f"""
-        <div style="background-color: #f0f0f0; border-radius: 10px; height: 30px; position: relative;">
-            <div style="background-color: {config['color']}; width: {risk_score}%; height: 100%; border-radius: 10px;
-                        display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                {risk_score}%
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
 
 
-def _render_llm_analysis(report: Dict[str, Any]):
-    """Renderiza análise LLM de forma destacada"""
-    llm_analysis = report.get("llm_analysis", {})
-
-    if not llm_analysis or llm_analysis.get("status") != "✅ Análise Completa":
-        st.warning("⚠️ Análise LLM não disponível")
-        return
-
-    st.header("🤖 Análise Inteligente (GPT-3.5)")
-
-    analysis_text = llm_analysis.get("analysis", "")
-
-    if analysis_text:
-        # Container destacado
-        st.markdown("""
-            <style>
-            .llm-analysis {
-                background-color: #f8f9fa;
-                border-left: 5px solid #4CAF50;
-                padding: 20px;
-                border-radius: 5px;
-                margin: 10px 0;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
-        with st.container():
-            st.markdown('<div class="llm-analysis">', unsafe_allow_html=True)
-            st.markdown(analysis_text)
-            st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.info("Nenhuma análise gerada")
 
 
-def _render_quick_metrics(report: Dict[str, Any]):
-    """Renderiza métricas rápidas"""
-    st.subheader("📈 Métricas Rápidas")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        ssl_advanced = report.get("ssl_advanced", {})
-        dias = ssl_advanced.get("dias_restantes", "N/A")
-        st.metric(
-            "🔐 Certificado SSL",
-            f"{dias} dias" if isinstance(dias, int) else dias,
-            delta="Válido" if isinstance(dias, int) and dias > 30 else "Expirando"
-        )
-
-    with col2:
-        headers = report.get("headers_check", {})
-        headers_ok = sum(1 for v in headers.values() if "✅" in str(v))
-        st.metric(
-            "📋 Headers Seguros",
-            f"{headers_ok}/4",
-            delta="OK" if headers_ok >= 3 else "Atenção"
-        )
-
-    with col3:
-        vulns = len(report.get("vulnerabilities", []))
-        st.metric(
-            "⚠️ Vulnerabilidades",
-            vulns,
-            delta="Crítico" if vulns > 5 else ("Atenção" if vulns > 0 else "OK"),
-            delta_color="inverse"
-        )
-
-    with col4:
-        exposed = report.get("exposed_files", {})
-        critical = len(exposed.get("critical_exposed", []))
-        st.metric(
-            "🚨 Arquivos Críticos",
-            critical,
-            delta="CRÍTICO" if critical > 0 else "Seguro",
-            delta_color="inverse"
-        )
 
 
-def _render_ssl_details(report: Dict[str, Any]):
-    """Renderiza detalhes SSL"""
-    with st.expander("🔐 **SSL/TLS Avançado**", expanded=True):
-        ssl_adv = report.get("ssl_advanced", {})
 
-        if ssl_adv:
-            st.markdown(f"**Status:** {ssl_adv.get('status', 'N/A')}")
-
-            if ssl_adv.get('dias_restantes'):
-                dias = ssl_adv['dias_restantes']
-                cor = "🟢" if dias > 30 else ("🟡" if dias > 7 else "🔴")
-                st.markdown(f"{cor} **Expira em:** {dias} dias")
-
-            if ssl_adv.get('protocolo'):
-                st.markdown(f"**Protocolo:** {ssl_adv['protocolo']}")
-
-            if ssl_adv.get('emissor'):
-                st.markdown(f"**Emissor:** {ssl_adv['emissor']}")
-
-            if ssl_adv.get('issues'):
-                st.error("**Problemas:**")
-                for issue in ssl_adv['issues']:
-                    st.markdown(f"- {issue}")
-
-            if ssl_adv.get('info'):
-                for info in ssl_adv['info']:
-                    st.success(info)
-        else:
-            st.info("Sem dados SSL avançados")
-
-
-def _render_headers_details(report: Dict[str, Any]):
-    """Renderiza detalhes de headers"""
-    with st.expander("📋 **Headers de Segurança**"):
-        headers = report.get("headers_check", {})
-
-        if headers:
-            for header, status in headers.items():
-                if "✅" in status:
-                    st.success(f"**{header}**: {status}")
-                else:
-                    st.error(f"**{header}**: {status}")
-        else:
-            st.info("Sem dados de headers")
-
-
-def _render_cookie_details(report: Dict[str, Any]):
-    """Renderiza detalhes de cookies"""
-    with st.expander("🍪 **Segurança de Cookies**"):
-        cookies = report.get("cookie_security", {})
-
-        if cookies:
-            st.markdown(f"**Status:** {cookies.get('status', 'N/A')}")
-            st.markdown(f"**Cookies Analisados:** {cookies.get('cookies_analyzed', 0)}")
-
-            if cookies.get('issues'):
-                st.warning("**Problemas Detectados:**")
-                for issue in cookies['issues'][:5]:  # Mostrar só os 5 primeiros
-                    st.markdown(f"- {issue}")
-            else:
-                st.success("✅ Nenhum problema detectado")
-        else:
-            st.info("Sem dados de cookies")
-
-
-def _render_vulnerabilities(report: Dict[str, Any]):
-    """Renderiza vulnerabilidades"""
-    with st.expander("⚠️ **Vulnerabilidades Detectadas**", expanded=True):
-        vulns = report.get("vulnerabilities", [])
-
-        if vulns:
-            for vuln in vulns:
-                st.warning(vuln)
-        else:
-            st.success("✅ Nenhuma vulnerabilidade detectada!")
-
-
-def _render_exposed_files(report: Dict[str, Any]):
-    """Renderiza arquivos expostos"""
-    with st.expander("📁 **Arquivos e Diretórios Expostos**"):
-        exposed = report.get("exposed_files", {})
-
-        if exposed:
-            critical = exposed.get("critical_exposed", [])
-            warnings = exposed.get("warnings", [])
-            total = exposed.get("total_exposed", 0)
-
-            st.markdown(f"**Total de arquivos verificados:** {total}")
-
-            if critical:
-                st.error(f"**🚨 CRÍTICOS ({len(critical)}):**")
-                for item in critical:
-                    st.markdown(f"- {item}")
-            else:
-                st.success("✅ Nenhum arquivo crítico exposto")
-
-            if warnings:
-                with st.expander(f"⚠️ Avisos ({len(warnings)})"):
-                    for warn in warnings[:10]:  # Mostrar só os 10 primeiros
-                        st.markdown(f"- {warn}")
-        else:
-            st.info("Sem dados de arquivos expostos")
-
-
-def _render_cms_detection(report: Dict[str, Any]):
-    """Renderiza detecção de CMS"""
-    with st.expander("🎨 **CMS Detectado**"):
-        cms = report.get("cms_detection", {})
-
-        if cms:
-            st.markdown(f"**Status:** {cms.get('status', 'N/A')}")
-
-            if cms.get('cms'):
-                st.info(f"**CMS:** {cms['cms']}")
-
-                if cms.get('version'):
-                    st.markdown(f"**Versão:** {cms['version']}")
-
-                if cms.get('warnings'):
-                    st.warning("**Avisos:**")
-                    for warn in cms['warnings']:
-                        st.markdown(f"- {warn}")
-            else:
-                st.success("✅ Nenhum CMS conhecido detectado (pode ser site custom)")
-        else:
-            st.info("Sem dados de CMS")
